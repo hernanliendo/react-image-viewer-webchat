@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from "prop-types";
 import stylePropType from 'react-style-proptype';
 
@@ -44,16 +44,13 @@ export default class ImageViewer extends Component {
 
     componentDidMount() {
         this.$preload.addEventListener('load', () => {
-            this.setState({
-                isLoaded: true,
-            });
             this.computeImagePosition();
         });
     }
 
     componentWillUnmount() {
         document.body.ontouchmove = function () {
-            return true
+            return true;
         };
     }
 
@@ -63,12 +60,18 @@ export default class ImageViewer extends Component {
     }
 
     getSize() {
-        const img = document.createElement('img');
-        img.src = this.props.image;
-        return {
-            width: img.hasOwnProperty('naturalWidth') ? img.naturalWidth : img.width,
-            height: img.hasOwnProperty('naturalHeight') ? img.naturalHeight : img.height,
-        };
+        return new Promise(resolve => {
+            const img = document.createElement('img');
+            img.src = this.props.image;
+            let result;
+            img.onload = function () {
+                result = {
+                    width: img.hasOwnProperty('naturalWidth') ? img.naturalWidth : img.width,
+                    height: img.hasOwnProperty('naturalHeight') ? img.naturalHeight : img.height
+                };
+                resolve(result);
+            };
+        });
     }
 
     getPosition() {
@@ -76,7 +79,7 @@ export default class ImageViewer extends Component {
         return {
             top: box.top,
             left: box.left + window.pageXOffset - document.documentElement.clientLeft,
-        }
+        };
     }
 
     computeViewedPosition() {
@@ -87,12 +90,15 @@ export default class ImageViewer extends Component {
         });
     }
 
-    computeImagePosition() {
+    async computeImagePosition() {
         const containerSize = {
             width: parseFloat(this.getStyle('width')),
             height: parseFloat(this.getStyle('height')),
         };
-        const imageRealSize = this.getSize();
+        const imageRealSize = await this.getSize();
+        this.setState({
+            isLoaded: true,
+        });
         const screenSize = this.screenSize = {
             width: window.innerWidth,
             height: window.innerHeight,
@@ -137,7 +143,7 @@ export default class ImageViewer extends Component {
                     left: this.config.stretchFromAnimate ? 0 : ((containerSize.width - containerSize.height * imageAspectRatio) / 2),
                     top: 0,
                 },
-            })
+            });
         }
 
     }
@@ -165,7 +171,7 @@ export default class ImageViewer extends Component {
             document.body.style.height = '';
             document.body.style.overflow = '';
             document.body.ontouchmove = function () {
-                return true
+                return true;
             };
 
             this.setState({
@@ -230,7 +236,7 @@ export default class ImageViewer extends Component {
                 />
                 <img
                     src={this.props.image}
-                    style={{display: 'none'}}
+                    style={{ display: 'none' }}
                     alt="preload"
                     ref={element => this.$preload = element}
                 />
